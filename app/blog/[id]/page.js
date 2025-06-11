@@ -6,11 +6,11 @@ import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { getBlog } from '@/lib/api';
 
-export default function BlogPostPage() {
+const BlogPage = () => {
   const router = useRouter();
   const { data: session } = useSession();
   const [blog, setBlog] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const params = useParams();
@@ -22,7 +22,7 @@ export default function BlogPostPage() {
     } catch (error) {
       console.error('Error fetching blog:', error);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   }, [params.id]);
 
@@ -54,7 +54,7 @@ export default function BlogPostPage() {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-sky-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400"></div>
@@ -149,4 +149,6 @@ export default function BlogPostPage() {
       </div>
     </div>
   );
-} 
+};
+
+export default BlogPage; 
