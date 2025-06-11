@@ -1,43 +1,33 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useCallback } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { getBlog, updateBlog } from '@/lib/api';
 
-export default function EditBlogPage({ params }) {
+export default function EditBlogPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const [blog, setBlog] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const params = useParams();
 
-  useEffect(() => {
-    fetchBlog();
-  }, [params.id]);
-
-  const fetchBlog = async () => {
+  const fetchBlog = useCallback(async () => {
     try {
-      const res = await fetch(`/api/blogs/${params.id}`);
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to fetch blog post');
-      }
-
-      // Check if user is the author
-      if (data.author._id !== session?.user?.id) {
-        router.push('/');
-        return;
-      }
-
+      const data = await getBlog(params.id);
       setBlog(data);
     } catch (error) {
       setError(error.message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [params.id]);
+
+  useEffect(() => {
+    fetchBlog();
+  }, [fetchBlog]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -49,25 +39,8 @@ export default function EditBlogPage({ params }) {
     const content = formData.get('content');
 
     try {
-      const res = await fetch(`/api/blogs/${params.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          title,
-          content,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Something went wrong');
-      }
-
+      await updateBlog(params.id, { title, content });
       router.push(`/blog/${params.id}`);
-      router.refresh();
     } catch (error) {
       setError(error.message);
     } finally {

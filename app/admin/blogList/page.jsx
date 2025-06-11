@@ -1,62 +1,78 @@
-'use client'
-import BlogTableItem from '@/Components/AdminComponents/BlogTableItem'
-import axios from 'axios';
-import React, { useEffect, useState } from 'react'
-import { toast } from 'react-toastify';
+'use client';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
+import { getBlogs, deleteBlog } from '@/lib/api';
 
-const page = () => {
-
-  const [blogs,setBlogs] = useState([]);
+export default function BlogListPage() {
+  const [blogs, setBlogs] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
+  const { user } = useAuth();
 
   const fetchBlogs = async () => {
-    const response = await axios.get('/api/blog');
-    setBlogs(response.data.blogs);
-  }
+    try {
+      const data = await getBlogs();
+      setBlogs(data);
+    } catch (error) {
+      console.error('Error fetching blogs:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  const deleteBlog = async (mongoId) => {
-    const response = await axios.delete('/api/blog',{
-      params:{
-        id:mongoId
-      }
-    })
-    toast.success(response.data.msg);
+  useEffect(() => {
     fetchBlogs();
-  }
+  }, []);
 
-  useEffect(()=>{
-    fetchBlogs()
-  },[])
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this blog?')) {
+      try {
+        await deleteBlog(id);
+        setBlogs(blogs.filter(blog => blog.id !== id));
+      } catch (error) {
+        console.error('Error deleting blog:', error);
+      }
+    }
+  };
+
+  if (isLoading) {
+    return <div className="container mx-auto px-4 py-8">Loading...</div>;
+  }
 
   return (
-    <div className='flex-1 pt-5 px-5 sm:pt-12 sm:pl-16'>
-      <h1>All blogs</h1>
-      <div className="relative h-[80vh] max-w-[850px] overflow-x-auto mt-4 border border-gray-400 scrollbar-hide">
-                <table className="w-full text-sm text-gray-500">
-                    <thead className="text-xs text-gray-700 text-left uppercase bg-gray-50">
-                        <tr>
-                            <th scope="col" className="hidden sm:block px-6 py-3">
-                                Author name
-                            </th>
-                            <th scope="col" className="px-6 py-3">
-                                Blog Title
-                            </th>
-                            <th scope="col" className="px-6 py-3">
-                                Date
-                            </th>
-                            <th scope="col" className="px-2 py-3">
-                                Action
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                      {blogs.map((item,index)=>{
-                          return <BlogTableItem key={index} mongoId={item._id} title={item.title} author={item.author} authorImg={item.authorImg} date={item.date} deleteBlog={deleteBlog}/>
-                      })}
-                    </tbody>
-                </table>
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Blog List</h1>
+        <button
+          onClick={() => router.push('/admin/addBlog')}
+          className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+        >
+          Add New Blog
+        </button>
+      </div>
+      <div className="grid gap-6">
+        {blogs.map((blog) => (
+          <div key={blog.id} className="border rounded-lg p-6">
+            <h2 className="text-xl font-semibold mb-2">{blog.title}</h2>
+            <p className="text-gray-600 mb-4">{blog.content.substring(0, 200)}...</p>
+            <div className="flex gap-4">
+              <button
+                onClick={() => router.push(`/blog/${blog.id}/edit`)}
+                className="text-blue-500 hover:text-blue-600"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => handleDelete(blog.id)}
+                className="text-red-500 hover:text-red-600"
+              >
+                Delete
+              </button>
             </div>
+          </div>
+        ))}
+      </div>
     </div>
-  )
+  );
 }
-
-export default page

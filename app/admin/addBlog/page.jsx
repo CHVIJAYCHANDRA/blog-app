@@ -1,77 +1,67 @@
 'use client'
-import { assets } from '@/Assets/assets'
-import axios from 'axios'
-import Image from 'next/image'
-import React, { useState } from 'react'
-import { toast } from 'react-toastify'
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
+import { createBlog } from '@/lib/api';
 
-const page = () => {
+export default function AddBlogPage() {
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+  const { user } = useAuth();
 
-    const [image,setImage] = useState(false);
-    const [data,setData] = useState({
-        title:"",
-        description:"",
-        category:"Startup",
-        author:"Alex Bennett",
-        authorImg:"/author_img.png"
-    })
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
 
-    const onChangeHandler = (event) =>{
-        const name = event.target.name;
-        const value = event.target.value;
-        setData(data=>({...data,[name]:value}));
-        console.log(data);
+    try {
+      await createBlog({ title, content });
+      router.push('/admin/blogList');
+    } catch (error) {
+      console.error('Error creating blog:', error);
+    } finally {
+      setIsLoading(false);
     }
-
-    const onSubmitHandler = async (e) =>{
-        e.preventDefault();
-        const formData = new FormData();
-        formData.append('title',data.title);
-        formData.append('description',data.description);
-        formData.append('category',data.category);
-        formData.append('author',data.author);
-        formData.append('authorImg',data.authorImg);
-        formData.append('image',image);
-        const response = await axios.post('/api/blog',formData);
-        if (response.data.success) {
-            toast.success(response.data.msg);
-            setImage(false);
-            setData({
-              title:"",
-              description:"",
-              category:"Startup",
-              author:"Alex Bennett",
-              authorImg:"/author_img.png"
-            });
-        }
-        else{
-            toast.error("Error");
-        }
-    }
+  };
 
   return (
-    <>
-      <form onSubmit={onSubmitHandler} className='pt-5 px-5 sm:pt-12 sm:pl-16'>
-        <p className='text-xl'>Upload thumbnail</p>
-        <label htmlFor="image">
-            <Image className='mt-4' src={!image?assets.upload_area:URL.createObjectURL(image)} width={140} height={70} alt=''/>
-        </label>
-        <input onChange={(e)=>setImage(e.target.files[0])} type="file" id='image' hidden required />
-        <p className='text-xl mt-4'>Blog title</p>
-        <input name='title' onChange={onChangeHandler} value={data.title} className='w-full sm:w-[500px] mt-4 px-4 py-3 border' type="text" placeholder='Type here' required />
-        <p className='text-xl mt-4'>Blog Description</p>
-        <textarea name='description' onChange={onChangeHandler} value={data.description} className='w-full sm:w-[500px] mt-4 px-4 py-3 border' type="text" placeholder='write content here' rows={6} required />
-        <p className='text-xl mt-4'>Blog category</p>
-        <select name="category" onChange={onChangeHandler} value={data.category} className='w-40 mt-4 px-4 py-3 border text-gray-500'>
-            <option value="Startup">Startup</option>
-            <option value="Technology">Technology</option>
-            <option value="Lifestyle">Lifestyle</option>
-        </select>
-        <br />
-        <button type="submit" className='mt-8 w-40 h-12 bg-black text-white'>ADD</button>
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-8">Add New Blog</h1>
+      <form onSubmit={handleSubmit} className="max-w-2xl">
+        <div className="mb-4">
+          <label htmlFor="title" className="block text-sm font-medium mb-2">
+            Title
+          </label>
+          <input
+            type="text"
+            id="title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          />
+        </div>
+        <div className="mb-4">
+          <label htmlFor="content" className="block text-sm font-medium mb-2">
+            Content
+          </label>
+          <textarea
+            id="content"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 h-64"
+            required
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50"
+        >
+          {isLoading ? 'Creating...' : 'Create Blog'}
+        </button>
       </form>
-    </>
-  )
+    </div>
+  );
 }
-
-export default page

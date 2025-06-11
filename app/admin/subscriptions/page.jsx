@@ -1,65 +1,48 @@
 'use client'
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import { getSubscriptions } from '@/lib/api';
 import SubsTableItem from '@/Components/AdminComponents/SubsTableItem'
 import axios from 'axios';
-import React, { useEffect, useState } from 'react'
 import { toast } from 'react-toastify';
 
-const page = () => {
+export default function SubscriptionsPage() {
+  const [subscriptions, setSubscriptions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuth();
 
-  const [emails,setEmails] = useState([]);
-
-  const fetchEmails = async () => {
-    const response = await axios.get('/api/email');
-    setEmails(response.data.emails)
-  }
-
-  const deleteEmail = async (mongoId) =>{
-    const response = await axios.delete('/api/email',{
-      params:{
-        id:mongoId
-      }
-    })
-    if (response.data.success) {
-      toast.success(response.data.msg);
-      fetchEmails();
+  const fetchSubscriptions = async () => {
+    try {
+      const data = await getSubscriptions();
+      setSubscriptions(data);
+    } catch (error) {
+      console.error('Error fetching subscriptions:', error);
+    } finally {
+      setIsLoading(false);
     }
-    else{
-      toast.error("Error");
-    }
-  }
+  };
 
-  useEffect(()=>{
-    fetchEmails();
-  },[])
+  useEffect(() => {
+    fetchSubscriptions();
+  }, []);
+
+  if (isLoading) {
+    return <div className="container mx-auto px-4 py-8">Loading...</div>;
+  }
 
   return (
-    <div className='flex-1 pt-5 px-5 sm:pt-12 sm:pl-16'>
-      <h1>All Subscription</h1>
-      <div className='relative max-w-[600px] h-[80vh] overflow-x-auto mt-4 border border-gray-400 scollbar-hide'>
-        <table className='w-full text-sm text-gray-500'>
-          <thead className='text-xs text-left text-gray-700 uppercase bg-gray-50 '>
-            <tr>
-              <th scope='col' className='px-6 py-3'>
-                Email Subscription
-              </th>
-              <th scope='col' className='hidden sm:block px-6 py-3'>
-                Date
-              </th>
-              <th scope='col' className='px-6 py-3'>
-                Action
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {emails.map((item,index)=>{
-                return <SubsTableItem key={index} mongoId={item._id} deleteEmail={deleteEmail} email={item.email} date={item.date}/>;
-            })}
-            
-          </tbody>
-        </table>
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-8">Subscriptions</h1>
+      <div className="grid gap-6">
+        {subscriptions.map((subscription) => (
+          <div key={subscription.id} className="border rounded-lg p-6">
+            <h2 className="text-xl font-semibold mb-2">{subscription.email}</h2>
+            <p className="text-gray-600">
+              Subscribed on: {new Date(subscription.createdAt).toLocaleDateString()}
+            </p>
+          </div>
+        ))}
       </div>
     </div>
-  )
+  );
 }
-
-export default page

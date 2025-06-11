@@ -1,38 +1,34 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useCallback } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
+import { getBlog } from '@/lib/api';
 
-export default function BlogPostPage({ params }) {
+export default function BlogPostPage() {
   const router = useRouter();
   const { data: session } = useSession();
   const [blog, setBlog] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
+  const params = useParams();
 
-  useEffect(() => {
-    fetchBlog();
-  }, [params.id]);
-
-  const fetchBlog = async () => {
+  const fetchBlog = useCallback(async () => {
     try {
-      const res = await fetch(`/api/blogs/${params.id}`);
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to fetch blog post');
-      }
-
+      const data = await getBlog(params.id);
       setBlog(data);
     } catch (error) {
-      setError(error.message);
+      console.error('Error fetching blog:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [params.id]);
+
+  useEffect(() => {
+    fetchBlog();
+  }, [fetchBlog]);
 
   const handleDelete = async () => {
     if (!window.confirm('Are you sure you want to delete this blog post?')) {
