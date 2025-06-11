@@ -1,4 +1,4 @@
-import Header from '@/components/Header';
+import Header from '../components/Header';
 import BlogList from '@/components/BlogList';
 
 export default function Home() {

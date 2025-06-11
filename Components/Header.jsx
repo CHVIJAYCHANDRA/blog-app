@@ -1,12 +1,10 @@
 'use client';
 
-import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useSession, signOut } from 'next-auth/react';
 
-const Header = () => {
+export default function Header() {
   const { data: session } = useSession();
-  const router = useRouter();
 
   return (
     <header className="bg-white shadow-md">
@@ -28,9 +26,9 @@ const Header = () => {
                 </Link>
                 <button
                   onClick={() => signOut()}
-                  className="text-gray-600 hover:text-gray-800"
+                  className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
                 >
-                  Logout
+                  Sign Out
                 </button>
               </>
             ) : (
@@ -38,7 +36,10 @@ const Header = () => {
                 <Link href="/login" className="text-gray-600 hover:text-gray-800">
                   Login
                 </Link>
-                <Link href="/register" className="text-gray-600 hover:text-gray-800">
+                <Link
+                  href="/register"
+                  className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+                >
                   Register
                 </Link>
               </>
@@ -48,6 +49,4 @@ const Header = () => {
       </nav>
     </header>
   );
-};
-
-export default Header;
+}
