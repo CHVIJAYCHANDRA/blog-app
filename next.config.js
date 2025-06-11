@@ -1,12 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
   images: {
-    unoptimized: true,
+    domains: ['localhost'],
   },
-  basePath: process.env.NODE_ENV === 'production' ? '/modern-blog-app' : '',
-  assetPrefix: process.env.NODE_ENV === 'production' ? '/modern-blog-app/' : '',
-  trailingSlash: true,
 }
 
 module.exports = nextConfig

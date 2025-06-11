@@ -16,7 +16,7 @@ A full-featured blog application built with Next.js, MongoDB, and NextAuth.js. T
 ## Prerequisites
 
 - Node.js 18.x or later
-- MongoDB Atlas account or local MongoDB installation
+- MongoDB (local installation or MongoDB Atlas account)
 - Git
 
 ## Getting Started
@@ -34,18 +34,27 @@ A full-featured blog application built with Next.js, MongoDB, and NextAuth.js. T
 
 3. Create a `.env.local` file in the root directory with the following variables:
    ```
-   MONGODB_URI=your_mongodb_connection_string
-   MONGODB_DB=your_database_name
+   MONGODB_URI=mongodb://localhost:27017/blog-app
+   MONGODB_DB=blog-app
    NEXTAUTH_URL=http://localhost:3000
-   NEXTAUTH_SECRET=your_nextauth_secret
+   NEXTAUTH_SECRET=your-secret-key-here
    ```
 
-4. Run the development server:
+4. Start MongoDB:
+   - If using local MongoDB:
+     ```bash
+     # Start MongoDB service
+     mongod
+     ```
+   - If using MongoDB Atlas:
+     - Update MONGODB_URI in .env.local with your Atlas connection string
+
+5. Run the development server:
    ```bash
    npm run dev
    ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+6. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Project Structure
 
@@ -91,21 +100,22 @@ blog-app/
   - MongoDB with Mongoose
   - NextAuth.js
 
-## Deployment
+## Development
 
-### Deploying to Vercel
+### Running Tests
+```bash
+npm test
+```
 
-1. Push your code to GitHub
-3. Import your repository
-4. Add your environment variables
-5. Deploy
+### Building for Production
+```bash
+npm run build
+```
 
-### Deploying to MongoDB Atlas
-
-1. Create a MongoDB Atlas account
-2. Create a new cluster
-3. Get your connection string
-4. Update your `.env.local` file with the connection string
+### Running Production Build
+```bash
+npm start
+```
 
 ## Contributing
 
