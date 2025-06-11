@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { createBlog } from '@/lib/api';
 
-export default function AddBlogPage() {
+const AddBlogPage = () => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -64,4 +64,6 @@ export default function AddBlogPage() {
       </form>
     </div>
   );
-}
+};
+
+export default AddBlogPage;

@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { getBlogs, deleteBlog } from '@/lib/api';
 
-export default function BlogListPage() {
+const BlogListPage = () => {
   const [blogs, setBlogs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
@@ -75,4 +75,6 @@ export default function BlogListPage() {
       </div>
     </div>
   );
-}
+};
+
+export default BlogListPage;

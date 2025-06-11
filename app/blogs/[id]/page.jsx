@@ -4,16 +4,16 @@ import Footer from '@/Components/Footer';
 import axios from 'axios';
 import Image from 'next/image';
 import Link from 'next/link';
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation';
 import { getBlog } from '@/lib/api';
 
-export default function BlogDetailPage() {
+const BlogDetailPage = () => {
   const [blog, setBlog] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const params = useParams();
 
-  const fetchBlogData = async () => {
+  const fetchBlogData = useCallback(async () => {
     try {
       const data = await getBlog(params.id);
       setBlog(data);
@@ -22,11 +22,11 @@ export default function BlogDetailPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [params.id]);
 
   useEffect(() => {
     fetchBlogData();
-  }, [params.id]);
+  }, [fetchBlogData]);
 
   if (isLoading) {
     return <div className="container mx-auto px-4 py-8">Loading...</div>;
@@ -69,4 +69,6 @@ export default function BlogDetailPage() {
       <Footer />
     </div>
   );
-}
+};
+
+export default BlogDetailPage;

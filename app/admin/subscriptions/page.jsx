@@ -6,7 +6,7 @@ import SubsTableItem from '@/Components/AdminComponents/SubsTableItem'
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
-export default function SubscriptionsPage() {
+const SubscriptionsPage = () => {
   const [subscriptions, setSubscriptions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
@@ -45,4 +45,6 @@ export default function SubscriptionsPage() {
       </div>
     </div>
   );
-}
+};
+
+export default SubscriptionsPage;
