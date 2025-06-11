@@ -1,12 +1,16 @@
 import { Inter } from 'next/font/google';
 import './globals.css';
-import { AuthProvider } from '@/context/AuthContext';
+import { getServerSession } from 'next-auth';
+import { authOptions } from './api/auth/[...nextauth]/route';
+import SessionProvider from '@/components/SessionProvider';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
   title: 'Blog App',
-  description: 'A modern blog application',
+  description: 'A modern blog application built with Next.js',
 };
 
 export const viewport = {
@@ -15,13 +19,16 @@ export const viewport = {
   maximumScale: 1,
 };
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  const session = await getServerSession(authOptions);
+
   return (
     <html lang="en">
       <body className={inter.className}>
-        <AuthProvider>
+        <SessionProvider session={session}>
           {children}
-        </AuthProvider>
+          <ToastContainer />
+        </SessionProvider>
       </body>
     </html>
   );

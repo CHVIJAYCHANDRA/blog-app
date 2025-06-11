@@ -1,28 +1,28 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../auth/[...nextauth]/route';
-import connectDB from '@/lib/db';
-import Blog from '@/lib/models/Blog';
-import User from '@/lib/models/User';
+import connectDB from '@/lib/mongodb';
+import Blog from '@/models/Blog';
 
 // GET /api/blogs/[id] - Get a single blog
 export async function GET(req, { params }) {
   try {
     await connectDB();
 
-    const blog = await Blog.findById(params.id).populate('author', 'name email');
+    const blog = await Blog.findById(params.id).populate('author', 'name');
 
     if (!blog) {
       return NextResponse.json(
-        { error: 'Blog not found' },
+        { message: 'Blog not found' },
         { status: 404 }
       );
     }
 
-    return NextResponse.json(blog);
+    return NextResponse.json({ blog });
   } catch (error) {
+    console.error('Error fetching blog:', error);
     return NextResponse.json(
-      { error: error.message },
+      { message: 'Error fetching blog' },
       { status: 500 }
     );
   }
@@ -35,8 +35,17 @@ export async function PUT(req, { params }) {
 
     if (!session) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { message: 'You must be logged in to update a blog' },
         { status: 401 }
+      );
+    }
+
+    const { title, content } = await req.json();
+
+    if (!title || !content) {
+      return NextResponse.json(
+        { message: 'Please provide title and content' },
+        { status: 400 }
       );
     }
 
@@ -46,38 +55,31 @@ export async function PUT(req, { params }) {
 
     if (!blog) {
       return NextResponse.json(
-        { error: 'Blog not found' },
+        { message: 'Blog not found' },
         { status: 404 }
       );
     }
 
-    // Check if user is the author
     if (blog.author.toString() !== session.user.id) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    const { title, content } = await req.json();
-
-    if (!title || !content) {
-      return NextResponse.json(
-        { error: 'Please provide title and content' },
-        { status: 400 }
+        { message: 'You are not authorized to update this blog' },
+        { status: 403 }
       );
     }
 
     blog.title = title;
     blog.content = content;
-    blog.updatedAt = new Date();
-
     await blog.save();
 
-    return NextResponse.json(blog);
+    return NextResponse.json({
+      success: true,
+      message: 'Blog updated successfully',
+      blog,
+    });
   } catch (error) {
+    console.error('Error updating blog:', error);
     return NextResponse.json(
-      { error: error.message },
+      { message: 'Error updating blog' },
       { status: 500 }
     );
   }
@@ -90,7 +92,7 @@ export async function DELETE(req, { params }) {
 
     if (!session) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { message: 'You must be logged in to delete a blog' },
         { status: 401 }
       );
     }
@@ -101,25 +103,28 @@ export async function DELETE(req, { params }) {
 
     if (!blog) {
       return NextResponse.json(
-        { error: 'Blog not found' },
+        { message: 'Blog not found' },
         { status: 404 }
       );
     }
 
-    // Check if user is the author
     if (blog.author.toString() !== session.user.id) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
+        { message: 'You are not authorized to delete this blog' },
+        { status: 403 }
       );
     }
 
     await blog.deleteOne();
 
-    return NextResponse.json({ message: 'Blog deleted successfully' });
+    return NextResponse.json({
+      success: true,
+      message: 'Blog deleted successfully',
+    });
   } catch (error) {
+    console.error('Error deleting blog:', error);
     return NextResponse.json(
-      { error: error.message },
+      { message: 'Error deleting blog' },
       { status: 500 }
     );
   }

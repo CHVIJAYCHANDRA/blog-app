@@ -1,37 +1,89 @@
-import React, { useEffect, useState } from 'react'
-import BlogItem from './BlogItem'
+'use client';
+
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 
 const BlogList = () => {
+  const [blogs, setBlogs] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(true);
 
-    const [menu,setMenu] = useState("All");
-    const [blogs,setBlogs] = useState([]);
+  useEffect(() => {
+    fetchBlogs();
+  }, [currentPage]);
 
-    const fetchBlogs = async () =>{
-      const response = await axios.get('/api/blog');
+  const fetchBlogs = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`/api/blogs?page=${currentPage}`);
       setBlogs(response.data.blogs);
-      console.log(response.data.blogs);
+      setTotalPages(response.data.totalPages);
+    } catch (error) {
+      toast.error('Error fetching blogs');
+    } finally {
+      setLoading(false);
     }
+  };
 
-    useEffect(()=>{
-      fetchBlogs();
-    },[])
+  if (loading) {
+    return <div className="text-center">Loading...</div>;
+  }
 
   return (
     <div>
-      <div className='flex justify-center gap-6 my-10'>
-        <button onClick={()=>setMenu('All')} className={menu==="All"?'bg-black text-white py-1 px-4 rounded-sm':""}>All</button>
-        <button onClick={()=>setMenu('Technology')} className={menu==="Technology"?'bg-black text-white py-1 px-4 rounded-sm':""}>Technology</button>
-        <button onClick={()=>setMenu('Startup')} className={menu==="Startup"?'bg-black text-white py-1 px-4 rounded-sm':""}>Startup</button>
-        <button onClick={()=>setMenu('Lifestyle')} className={menu==="Lifestyle"?'bg-black text-white py-1 px-4 rounded-sm':""}>Lifestyle</button>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {blogs.map((blog) => (
+          <div
+            key={blog._id}
+            className="bg-white rounded-lg shadow-md overflow-hidden"
+          >
+            <div className="p-6">
+              <h2 className="text-xl font-semibold mb-2">{blog.title}</h2>
+              <p className="text-gray-600 mb-4">
+                {blog.content.substring(0, 150)}...
+              </p>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-500">
+                  By {blog.author.name}
+                </span>
+                <Link
+                  href={`/blog/${blog._id}`}
+                  className="text-indigo-600 hover:text-indigo-800"
+                >
+                  Read more →
+                </Link>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
-      <div className='flex flex-wrap justify-around gap-1 gap-y-10 mb-16 xl:mx-24'>
-        {blogs.filter((item)=> menu==="All"?true:item.category===menu).map((item,index)=>{
-            return <BlogItem key={index} id={item._id} image="" title={item.title} description={item.description} category={item.category} />
-        })}
-      </div>
-    </div>
-  )
-}
 
-export default BlogList
+      {totalPages > 1 && (
+        <div className="flex justify-center mt-8 space-x-2">
+          <button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="px-4 py-2 border rounded-md disabled:opacity-50"
+          >
+            Previous
+          </button>
+          <span className="px-4 py-2">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className="px-4 py-2 border rounded-md disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default BlogList;
