@@ -1,7 +1,5 @@
 'use client'
-import { assets } from '@/Assets/assets';
 import Footer from '@/Components/Footer';
-import Image from 'next/image';
 import Link from 'next/link';
 import React, { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation';
