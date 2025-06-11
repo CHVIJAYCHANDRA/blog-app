@@ -1,29 +1,23 @@
 import { Inter } from 'next/font/google';
-import { getServerSession } from 'next-auth';
-import { authOptions } from './api/auth/[...nextauth]/route';
-import Providers from './providers';
 import './globals.css';
+import { AuthProvider } from './providers';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
   title: 'Blog App',
-  description: 'A simple blog application',
+  description: 'A modern blog application built with Next.js',
+  keywords: ['blog', 'next.js', 'react', 'javascript'],
+  authors: [{ name: 'Your Name' }],
+  viewport: 'width=device-width, initial-scale=1',
+  robots: 'index, follow',
 };
 
-export default async function RootLayout({ children }) {
-  let session;
-  try {
-    session = await getServerSession(authOptions);
-  } catch (error) {
-    console.error('Session error:', error);
-    session = null;
-  }
-
+export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={inter.className}>
-        <Providers session={session}>
+        <AuthProvider>
           <div className="min-h-screen bg-sky-50">
             <nav className="bg-yellow-400 shadow-lg">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -74,7 +68,7 @@ export default async function RootLayout({ children }) {
               {children}
             </main>
           </div>
-        </Providers>
+        </AuthProvider>
       </body>
     </html>
   );

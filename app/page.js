@@ -1,38 +1,48 @@
 'use client'
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import Footer from "@/Components/Footer";
 import Header from "@/Components/Header";
-import { ToastContainer } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 
-export default function HomePage() {
+const HomePage = () => {
   const { data: session } = useSession();
   const [blogs, setBlogs] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    fetchBlogs();
-  }, [currentPage]);
-
-  const fetchBlogs = async () => {
+  const fetchBlogs = useCallback(async () => {
     try {
       const res = await fetch(`/api/blogs?page=${currentPage}&limit=10`);
+      if (!res.ok) {
+        throw new Error('Failed to fetch blogs');
+      }
       const data = await res.json();
       setBlogs(data.blogs);
       setTotalPages(data.totalPages);
-      setLoading(false);
     } catch (error) {
       console.error('Error fetching blogs:', error);
-      setLoading(false);
+      toast.error('Failed to load blogs. Please try again later.');
+    } finally {
+      setIsLoading(false);
     }
+  }, [currentPage]);
+
+  useEffect(() => {
+    fetchBlogs();
+  }, [fetchBlogs]);
+
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
     <div className="min-h-screen bg-sky-50">
+      <Header />
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           <div className="flex justify-between items-center mb-6">
@@ -47,9 +57,13 @@ export default function HomePage() {
             )}
           </div>
 
-          {loading ? (
+          {isLoading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400 mx-auto"></div>
+            </div>
+          ) : blogs.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-500">No blog posts found.</p>
             </div>
           ) : (
             <>
@@ -87,16 +101,16 @@ export default function HomePage() {
               <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 mt-4">
                 <div className="flex-1 flex justify-between sm:hidden">
                   <button
-                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    onClick={() => handlePageChange(Math.max(currentPage - 1, 1))}
                     disabled={currentPage === 1}
-                    className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-sky-700 bg-white hover:bg-sky-50"
+                    className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-sky-700 bg-white hover:bg-sky-50 disabled:opacity-50"
                   >
                     Previous
                   </button>
                   <button
-                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                    onClick={() => handlePageChange(Math.min(currentPage + 1, totalPages))}
                     disabled={currentPage === totalPages}
-                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-sky-700 bg-white hover:bg-sky-50"
+                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-sky-700 bg-white hover:bg-sky-50 disabled:opacity-50"
                   >
                     Next
                   </button>
@@ -111,16 +125,16 @@ export default function HomePage() {
                   <div>
                     <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
                       <button
-                        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                        onClick={() => handlePageChange(Math.max(currentPage - 1, 1))}
                         disabled={currentPage === 1}
-                        className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-sky-500 hover:bg-sky-50"
+                        className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-sky-500 hover:bg-sky-50 disabled:opacity-50"
                       >
                         Previous
                       </button>
                       <button
-                        onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                        onClick={() => handlePageChange(Math.min(currentPage + 1, totalPages))}
                         disabled={currentPage === totalPages}
-                        className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-sky-500 hover:bg-sky-50"
+                        className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-sky-500 hover:bg-sky-50 disabled:opacity-50"
                       >
                         Next
                       </button>
@@ -132,6 +146,10 @@ export default function HomePage() {
           )}
         </div>
       </div>
+      <Footer />
+      <ToastContainer position="bottom-right" />
     </div>
   );
-}
+};
+
+export default HomePage;
